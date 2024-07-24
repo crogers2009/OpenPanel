@@ -37,15 +37,15 @@ RESET='\033[0m'
 # Defaults
 CUSTOM_VERSION=false
 INSTALL_TIMEOUT=600 # 10 min
-DEBUG=false
+DEBUG=true
 SKIP_APT_UPDATE=false
 SKIP_IMAGES=false
 REPAIR=false
 LOCALES=true
 NO_SSH=false
-INSTALL_FTP=false
-INSTALL_MAIL=false
-OVERLAY=false
+INSTALL_FTP=true
+INSTALL_MAIL=true
+OVERLAY=true
 IPSETS=true
 SET_HOSTNAME_NOW=false
 SETUP_SWAP_ANYWAY=false
@@ -546,8 +546,8 @@ configure_docker() {
         echo "Setting 'overlay2' as the default storage driver for Docker.."
         cp ${ETC_DIR}docker/overlay2/daemon.json "$docker_daemon_json_path"
     else
-        echo "Setting 'devicemapper' as the default storage driver for Docker.."
-        cp ${ETC_DIR}docker/devicemapper/daemon.json "$docker_daemon_json_path"
+        echo "Setting 'overlay2' as the default storage driver for Docker.."
+        cp ${ETC_DIR}docker/overlay2/daemon.json "$docker_daemon_json_path"
     fi
 
     echo -e "Docker is configured."
@@ -1173,7 +1173,7 @@ install_openadmin(){
     # Ubuntu 22
     if [ -f /etc/os-release ] && grep -q "Ubuntu 22" /etc/os-release; then   
         echo "Downloading files for Ubuntu22 and python version $current_python_version"
-        git clone -b $current_python_version --single-branch https://github.com/stefanpejcic/openadmin $OPENPADMIN_DIR
+        git clone https://github.com/stefanpejcic/openadmin $OPENPADMIN_DIR
         cd $OPENPADMIN_DIR
         debug_log pip install -r requirements.txt
     # Ubuntu 24
