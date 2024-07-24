@@ -71,6 +71,11 @@ SCREENSHOTS_API_URL="http://screenshots-api.openpanel.co/screenshot"
 # Redirect output to the log file
 exec > >(tee -a "$LOG_FILE") 2>&1
 
+
+
+
+
+
 #####################################################################
 #                                                                   #
 # START helper functions                                            #
@@ -1149,7 +1154,10 @@ panel_customize(){
     fi
 }
 
+
+
 install_openadmin(){
+
     # OpenAdmin
     #
     # https://openpanel.co/docs/admin/intro/
@@ -1161,10 +1169,6 @@ install_openadmin(){
     fi
     
     mkdir -p $OPENPADMIN_DIR
-
-    # Get current Python version
-    current_python_version=$(python3 --version 2>&1 | cut -d " " -f 2 | cut -d "." -f 1,2 | tr -d '.')
-    echo "Current Python version: $current_python_version"
 
     # Ubuntu 22
     if [ -f /etc/os-release ] && grep -q "Ubuntu 22" /etc/os-release; then   
@@ -1182,35 +1186,31 @@ install_openadmin(){
         # on ubuntu24 we need to use overlay instead of devicemapper!
         OVERLAY=true
         
-    # Debian
+    # Debian12
     elif [ -f /etc/debian_version ]; then
         echo "Installing PIP and Git"
-        apt-get install git python3-pip -y > /dev/null 2>&1
+        apt-get install git pip -y > /dev/null 2>&1
         echo "Downloading files for Debian and python version $current_python_version"
-        git clone -b "debian-$current_python_version" --single-branch https://github.com/stefanpejcic/openadmin "$OPENPADMIN_DIR" || {
-            echo "Failed to clone the repository. Falling back to main branch."
-            git clone https://github.com/stefanpejcic/openadmin "$OPENPADMIN_DIR"
-        }
-        cd "$OPENPADMIN_DIR" || exit
-        if [ -f requirements.txt ]; then
-            debug_log pip3 install -r requirements.txt
-            debug_log pip3 install -r requirements.txt --break-system-packages
-        else
-            echo "requirements.txt not found in $OPENPADMIN_DIR"
-            ls -la  # List directory contents for debugging
-        fi
+        git clone -b debian-$current_python_version --single-branch https://github.com/stefanpejcic/openadmin $OPENPADMIN_DIR
+        cd $OPENPADMIN_DIR
+        debug_log pip install -r requirements.txt
+        debug_log pip install -r requirements.txt --break-system-packages
     # other
     else
-        echo "Unsupported OS. Currently only Ubuntu22-24 and Debian11-12 are supported."
-        exit 1
+        echo "Unsuported OS. Currently only Ubuntu22-24 and Debian11-12 are supported."
+        echo 0
     fi
 
+
+    
     cp -fr /usr/local/admin/service/admin.service ${SERVICES_DIR}admin.service  > /dev/null 2>&1
     
     systemctl daemon-reload  > /dev/null 2>&1
     service admin start  > /dev/null 2>&1
     systemctl enable admin  > /dev/null 2>&1
+
 }
+
 
 create_admin_and_show_logins_success_message() {
 
@@ -1252,3 +1252,50 @@ create_admin_and_show_logins_success_message() {
 }
 
 # END main functions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####################################################################
+#                                                                   #
+# START main script execution                                       #
+#                                                                   #
+#####################################################################
+
+print_header
+
+parse_args "$@"
+
+check_requirements
+
+detect_installed_panels
+
+check_lock_file_age
+
+install_started_message
+
+main
+
+rm_helpers
+
+send_install_log
+set_email_address_and_email_admin_logins
+# END main script execution
+
+
+
+
+
